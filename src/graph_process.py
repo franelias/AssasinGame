@@ -1,7 +1,4 @@
-
-
 from networkx.classes.graph import Graph
-
 
 class GraphProcess:
     def __init__(self, graph: Graph, maxDistance):
