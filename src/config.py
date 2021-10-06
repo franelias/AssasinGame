@@ -1,17 +1,16 @@
-from typing import OrderedDict
 import networkx as nx
 
 from player import Player
 from city import City
 
 
-JUGADORES = "./data/jugadores.txt"
-DISTANCIAS = "./data/distancias.txt"
+JUGADORES = "../data/jugadores.txt"
+DISTANCIAS = "../data/distancias.txt"
 
 
 class Config:
     def __init__(self):
-        self.cities = OrderedDict()
+        self.cities = dict()
         self.players = list()
         self.Graph = nx.Graph()
 

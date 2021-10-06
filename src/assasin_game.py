@@ -65,17 +65,15 @@ class AssasinGame:
 
     def matchLeftouts(self, leftouts: List[Player]):
         matches = []
-
         for player in leftouts:
             playerCity = self.cities[player.city]
             for node in self.graph[playerCity]:
-                # si puede matchear hace algo
-                if player.city != node.name and len(node.players) % 2 != 0:
-                    leftouts.remove(player)
+                if player in leftouts and player.city != node.name and len(node.players) % 2 != 0:
                     player2 = self.findOtherPlayer(leftouts, node.name)
-                    matches.append([player, player2])
-                    leftouts.remove(player2)
-
+                    if player2:
+                        matches.append([player, player2])
+                        leftouts.remove(player)
+                        leftouts.remove(player2)
         return matches
 
     def makeMatches(self, players: List[Player]):
