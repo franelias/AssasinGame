@@ -1,10 +1,8 @@
 import random
 from typing import List
-from networkx.classes import graph
-from collections import OrderedDict
 from assasin_game import AssasinGame
-from city import City
 from config import Config
+from graph_process import GraphProcess
 from player import Player
 
 
@@ -30,17 +28,12 @@ def killRound(players: List[Player]):
     return players
 
 
-# def round(G: graph, players: list):
-#     ronda = 0
-#     for _ in range(len(players)):
-#         for node in G:
-#             if len(node.players) > 1:
-#                 killRound(node.players)
-
-
 def main():
     config = Config()
     config.load()
+
+    process = GraphProcess(config.Graph, 100)
+    process.adjustGraph()
 
     game = AssasinGame(config)
 
