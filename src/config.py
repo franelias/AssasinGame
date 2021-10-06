@@ -4,8 +4,8 @@ from player import Player
 from city import City
 
 
-JUGADORES = "../data/jugadores.txt"
-DISTANCIAS = "../data/distancias.txt"
+JUGADORES = "./data/jugadores.txt"
+DISTANCIAS = "./data/distancias.txt"
 
 
 class Config:

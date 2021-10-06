@@ -14,14 +14,21 @@ class AssasinGame:
         self.round = 0
 
     def start(self):
-        while len(self.choosePlayers()[0]) != 0:
-            self.playRound()
+        matches = self.choosePlayers()
+
+        while len(matches[0]) != 0:
+            self.playRound(matches[0], matches[1])
+            matches = self.choosePlayers()
+        for player in self.players:
+            self.printWinner(player)
 
     def printKill(self, killer: Player, victim: Player):
         print(f'{killer.name} eliminó a {victim.name}')
 
     def printWinner(self, winner: Player):
         print(f'{winner.name} ganó the game')
+        self.cities[winner.city].players.remove(winner)
+        self.players.remove(winner)
 
     def fight(self, match: List[Player]):
         killed = random.choice(match)
@@ -32,14 +39,14 @@ class AssasinGame:
 
         return match[0]
 
-    def playRound(self):
+    def playRound(self, matches, leftouts):
         winners = []
-        matches = self.choosePlayers()
-        for match in matches[0]:
+        for match in matches:
             winner = self.fight(match)
             winners.append(winner)
-        for player in matches[1]:
-            self.printWinner(player)
+        # for player in leftouts:
+            # self.printWinner(player)
+
         self.players = winners
         self.round += 1
         print(f'ronda {self.round}',

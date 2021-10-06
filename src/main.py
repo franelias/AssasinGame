@@ -39,6 +39,8 @@ def main():
 
     game.start()
 
+    # print("end game --- %s seconds ---" % (time.time() - start_time))
+
     # round(cities[2], cities[1])
 
 
