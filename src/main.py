@@ -1,47 +1,48 @@
 import random
-from typing import List
 from assasin_game import AssasinGame
 from config import Config
-from graph_process import GraphProcess
-from player import Player
-
-
-def fight(player1: Player, player2: Player):
-    return random.choice([player1, player2])
-
-
-def printKill(killer: Player, victim: Player):
-    print(f'{killer.name} eliminó a {victim.name}')
-
-
-def printWinner(winner: Player):
-    print(f'{winner.name} ganó the game')
-
-
-def killRound(players: List[Player]):
-    contrincants = random.sample(players, k=2)
-
-    victim = fight(contrincants[0], contrincants[1])
-
-    players.remove(victim)
-
-    return players
+# from graph_process import GraphProcess
+import time
+import sys
 
 
 def main():
-    config = Config()
-    config.load()
+    start_time = time.time()
+    # -2 players -1 distancias
+    config = Config(sys.argv[-2], sys.argv[-1])
+    config.loadPlayers()
+    config.loadGraph(100)
 
-    process = GraphProcess(config.Graph, 100)
-    process.adjustGraph()
+    # print(config.graph)
 
-    game = AssasinGame(config)
+    # process = GraphProcess(config.Graph, 100)
+    # process.adjustGraph()
 
-    game.start()
+    # new_key = "A"
+    # old_key = "a"
+    # adultPlayers = config.graph["adultPlayers"]
+    # minorPlayers = config.graph["minorPlayers"]
+
+    for city in config.graph:
+        config.graph[city]["players"] = config.graph[city].pop("adultPlayers")
+
+    adultGame = AssasinGame(config)
+    adultGame.start()
+
+    print("aca van lo pibe")
+
+    for city in config.graph:
+        config.graph[city]["players"] = config.graph[city].pop("minorPlayers")
+
+        # print(len(config.graph[city]["players"]))
+
+    minorGame = AssasinGame(config)
+    minorGame.start()
 
     # print("end game --- %s seconds ---" % (time.time() - start_time))
 
     # round(cities[2], cities[1])
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 
 if __name__ == "__main__":

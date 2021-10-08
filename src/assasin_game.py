@@ -1,100 +1,102 @@
+import random
 from typing import List
 from config import Config
-
-import random
-
 from player import Player
 
 
 class AssasinGame:
     def __init__(self, config: Config):
-        self.players = config.players
-        self.cities = config.cities
-        self.graph = config.Graph
-        self.round = 0
+        self.graph = config.graph
 
     def start(self):
-        matches = self.choosePlayers()
-
-        while len(matches[0]) != 0:
-            self.playRound(matches[0], matches[1])
-            matches = self.choosePlayers()
-        for player in self.players:
-            self.printWinner(player)
-
-    def printKill(self, killer: Player, victim: Player):
-        print(f'{killer.name} eliminó a {victim.name}')
+        while self.canPlay():
+            self.playRound()
 
     def printWinner(self, winner: Player):
         print(f'{winner.name} ganó the game')
-        self.cities[winner.city].players.remove(winner)
-        self.players.remove(winner)
 
     def fight(self, match: List[Player]):
         killed = random.choice(match)
         match.remove(killed)
-        self.cities[killed.city].players.remove(killed)
 
         # self.printKill(match[0], killed)
 
-        return match[0]
+        return match[0], killed
 
-    def playRound(self, matches, leftouts):
-        winners = []
+    def canPlay(self):
+        for city in self.graph:
+            if len(self.graph[city]["players"]) >= 2:
+                return True
+            if len(self.graph[city]["players"]) == 1:
+                for neighbor in self.graph[city]["neighbor"]:
+                    # neighborName = (list(neighbor.keys()))[0]
+
+                    if len(self.graph[neighbor[0]]["players"]) >= 1:
+                        return True
+        return False
+
+    def playRound(self):
+        leftouts = []
+
+        for city in self.graph:
+            leftout = self.managePlayers(self.graph[city]["players"])
+
+            if leftout != None:
+                leftouts.append(leftout)
+
+        self.matchLeftouts(leftouts)
+
+    def managePlayers(self, players: List[Player]):
+        if len(players) % 2 == 0:
+            players.extend(self.makeFights(players))
+            return None
+        leftout = players.pop()
+        players.extend(self.makeFights(players))
+        players.append(leftout)
+        return leftout
+
+    def makeFights(self, players: List[Player]):
+        matchWinners = []
+        matches = []
+        # start_time = time.time()
+
+        for _ in range(0, int(len(players) / 2)):
+            index1 = random.randint(0, (len(players) - 1))
+
+            player1 = players[index1]
+            players.pop(index1)
+
+            index2 = random.randint(0, (len(players) - 1))
+            player2 = players[index2]
+            players.pop(index2)
+
+            matches.append([player1, player2])
+
         for match in matches:
             winner = self.fight(match)
-            winners.append(winner)
-        # for player in leftouts:
-            # self.printWinner(player)
+            matchWinners.append(winner[0])
 
-        self.players = winners
-        self.round += 1
-        print(f'ronda {self.round}',
-              f'{len(self.players)} personas restantes')
+        return matchWinners
 
-    def choosePlayers(self):
-        matches = []
-        leftouts = []
-        for node in self.graph:
-            result = self.get_matches(node.players)
-            matches.extend(result[0])
-            if result[1] != None:
-                leftouts.append(result[1])
-
-        matches.extend(self.matchLeftouts(leftouts))
-
-        return matches, leftouts
-
-    def findOtherPlayer(self, letfouts: List[Player], city: str):
-        for player in letfouts:
+    def findOtherPlayer(self, leftouts: List[Player], city: str):
+        for player in leftouts:
             if player.city == city:
                 return player
 
     def matchLeftouts(self, leftouts: List[Player]):
-        matches = []
         for player in leftouts:
-            playerCity = self.cities[player.city]
-            for node in self.graph[playerCity]:
-                if player in leftouts and player.city != node.name and len(node.players) % 2 != 0:
-                    player2 = self.findOtherPlayer(leftouts, node.name)
+            for neighbor in self.graph[player.city]["neighbor"]:
+                cityNames = map(lambda leftout: leftout.city, leftouts)
+
+                if neighbor[0] in list(cityNames):
+                    # print("MATCH", player.city, neighbor[0])
+                    player2 = self.findOtherPlayer(leftouts, neighbor[0])
                     if player2:
-                        matches.append([player, player2])
                         leftouts.remove(player)
                         leftouts.remove(player2)
-        return matches
 
-    def makeMatches(self, players: List[Player]):
-        cityMatches = []
-        for _ in range(0, int(len(players) / 2)):
-            match = random.sample(players, k=2)
-            cityMatches.append(match)
-            players.remove(match[0])
-            players.remove(match[1])
-        return cityMatches
+                        match = [player, player2]
+                        winner = self.fight(match)
 
-    def get_matches(self, players: List[Player]):
-        dummyPlayerList = players.copy()
-        if len(players) % 2 == 0:
-            return self.makeMatches(dummyPlayerList), None
-        p = dummyPlayerList.pop()
-        return (self.makeMatches(dummyPlayerList), p)
+                        self.graph[winner[1].city]["players"].remove(winner[1])
+                        break

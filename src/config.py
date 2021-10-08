@@ -1,21 +1,39 @@
-import networkx as nx
-
 from player import Player
-from city import City
-
 
 JUGADORES = "./data/jugadores.txt"
 DISTANCIAS = "./data/distancias.txt"
 
+# Estructura del grafo
+# {
+#     Rosario: {
+#         neighbor: [
+#             (
+#                 Buenos Aires: 21
+#             ),
+#             (
+#                 La Pampa: 420
+#             )
+#         ],
+#         adultPlayers: [
+#             "pepe",
+#             "culiana"
+#         ],
+#         minorPlayers: [
+#             "pepe",
+#             "culiana"
+#         ]
+#     }
+# }
+
 
 class Config:
-    def __init__(self):
-        self.cities = dict()
-        self.players = list()
-        self.Graph = nx.Graph()
+    def __init__(self, players: str, distances: str):
+        self.graph = dict()
+        self.players = players
+        self.distances = distances
 
-    def load(self):
-        with open(JUGADORES, 'r') as jugadores:
+    def loadPlayers(self):
+        with open(self.players, 'r') as jugadores:
             for person in jugadores.readlines():
                 personArray = person.strip('\n').split(",")
                 name = personArray[0]
@@ -24,17 +42,20 @@ class Config:
 
                 player = Player(name, cityName, age)
 
-                self.players.append(player)
-
-                if self.cities.get(cityName):
-                    self.cities[cityName].add_player(player)
+                if int(player.age) > 18:
+                    self.graph.setdefault(
+                        cityName, {"neighbor": [], "adultPlayers": [player], "minorPlayers": []})["adultPlayers"].append(player)
                 else:
-                    self.cities[cityName] = City(cityName, [player])
+                    self.graph.setdefault(
+                        cityName, {"neighbor": [], "adultPlayers": [], "minorPlayers": [player]})["minorPlayers"].append(player)
 
-                self.Graph.add_node(self.cities[cityName])
-
-        with open(DISTANCIAS, 'r') as distancias:
+    def loadGraph(self, n: int):
+        with open(self.distances, 'r') as distancias:
             for distancia in distancias.readlines():
                 distanciaArray = distancia.strip('\n').split(", ")
-                self.Graph.add_edge(
-                    self.cities[distanciaArray[0]], self.cities[distanciaArray[1]], distance=float(distanciaArray[2]))
+
+                if float(distanciaArray[2]) < n:
+                    self.graph[distanciaArray[0]]["neighbor"].append(
+                        [distanciaArray[1], distanciaArray[2]])
+                    self.graph[distanciaArray[1]]["neighbor"].append(
+                        [distanciaArray[0], distanciaArray[2]])
