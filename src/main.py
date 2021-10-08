@@ -5,9 +5,9 @@ import config.cities_process as CitiesProcess
 
 def main():
     cities = dict()
-    maxDistance = Config.inputMaxDistance()
+    # maxDistance = Config.inputMaxDistance()
     Config.loadPlayersFromFile(cities)
-    Config.loadCitiesFromFile(cities, maxDistance)
+    Config.loadCitiesFromFile(cities, 100)
 
     CitiesProcess.adjustNeighbor(cities)
     with open('./output.txt', "w+", encoding="utf-8") as output:

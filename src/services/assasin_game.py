@@ -22,14 +22,10 @@ def printKill(killer: Player, killed: Player, output: TextIOWrapper):
 
 
 def fight(match: List[Player], output: TextIOWrapper):
-    indexKilled = 0
     indexKiller = random.randint(0, 1)
 
-    if indexKiller == 0:
-        indexKilled = 1
-
-    killer = match[indexKiller]
-    killed = match.pop(indexKilled)
+    killer = match.pop(indexKiller)
+    killed = match[0]
 
     printKill(killer, killed, output)
 
@@ -74,13 +70,10 @@ def makeFights(players: List[Player], output: TextIOWrapper):
 
     for _ in range(0, int(len(players) / 2)):
         index1 = random.randint(0, (len(players) - 1))
-
-        player1 = players[index1]
-        players.pop(index1)
+        player1 = players.pop(index1)
 
         index2 = random.randint(0, (len(players) - 1))
-        player2 = players[index2]
-        players.pop(index2)
+        player2 = players.pop(index2)
 
         killer, _ = fight([player1, player2], output)
         matchWinners.append(killer)
@@ -95,18 +88,70 @@ def findPlayerByCity(players: List[Player], city: str):
 
 
 def matchLeftouts(cities, leftouts: List[Player], output: TextIOWrapper):
+    playersMatched = []
     for player in leftouts:
         for neighbor, _ in cities[player.city]["neighbor"]:
-            cityNames = map(lambda leftout: leftout.city, leftouts)
 
-            if neighbor in list(cityNames):
-                player2 = findPlayerByCity(leftouts, neighbor)
-                if player2:
-                    leftouts.remove(player)
-                    leftouts.remove(player2)
+            if not player in playersMatched:
+                cityNames = map(lambda leftout: leftout.city, leftouts)
 
-                    match = [player, player2]
-                    winner, _ = fight(match, output)
+                if neighbor in list(cityNames):
+                    player2 = findPlayerByCity(leftouts, neighbor)
+                    if player2:
+                        leftouts.remove(player)
+                        leftouts.remove(player2)
 
-                    cities[winner.city]["players"].remove(winner)
-                    break
+                        playersMatched.append(player)
+                        playersMatched.append(player2)
+
+                        match = [player, player2]
+                        _, killed = fight(match, output)
+
+                        cities[killed.city]["players"].remove(killed)
+                        break
+
+
+# def matchLeftouts(cities, leftouts: List[Player], output: TextIOWrapper):
+#     matched = []
+#     for player in leftouts:
+#         print(player.city, cities[player.city]["neighbor"])
+#         print(matched)
+#         for neighbor, _ in cities[player.city]["neighbor"]:
+#             cityNames = list(map(lambda leftout: leftout.city, leftouts))
+#             if not(player in matched):
+#                 if neighbor in cityNames:
+#                     player2 = findPlayerByCity(leftouts, neighbor)
+
+#                     matched.append(player)
+#                     matched.append(player2)
+
+#                     match = [player, player2]
+#                     _, killed = fight(match, output)
+
+#                     print(len(cities[killed.city]["players"]))
+
+#                     cities[killed.city]["players"].remove(killed)
+#                     break
+#     print("cambiode ronda")
+
+# def matchLeftouts(cities, leftouts: List[Player]):
+#     matches = []
+#     matched = []
+#     for player in leftouts:
+#         cityNames = list(map(lambda leftout: leftout.city, leftouts))
+#         if not(player in matched):
+#             for neighbor, _ in cities[player.city]["neighbor"]:
+#                 if neighbor in cityNames:
+#                     player2 = findPlayerByCity(leftouts, neighbor)
+
+#                     matched.append(player)
+#                     matched.append(player2)
+
+#                     match = [player, player2]
+#                     matches.append(match)
+#                     break
+
+#         if not player in matched or (cities[player.city]["neighbor"]) == 0:
+#             cities[player.city]["players"].append(player)
+
+#     return matches
