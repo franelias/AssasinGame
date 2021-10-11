@@ -1,38 +1,55 @@
-from io import TextIOWrapper
 import random
+from io import TextIOWrapper
 from typing import List
 from player import Player
+from config.config import Cities
+
+# Función que administra el sistema de rondas del juego, cuando no
+# haya mas parejas para poder seguir jugando, imprime a los ganadores.
+# start: Cities TextIOWrapper -> None
 
 
-def start(cities: dict, output: TextIOWrapper):
+def start(cities: Cities, output: TextIOWrapper):
     while canPlay(cities):
         playRound(cities, output)
 
+    printWinners(cities, output)
+
+    return cities
+
+
+# printWinners: Player TextIOWrapper -> None
+# Función que escribe en un archivo los ganadores.
+def printWinners(cities: Player, output: TextIOWrapper):
     for city in cities:
-        for player in cities[city]["players"]:
-            printWinner(player, output)
+        for winner in cities[city]["players"]:
+            output.write(f'{winner.name} ganó the game\n')
 
-
-def printWinner(winner: Player, output: TextIOWrapper):
-    output.write(f'{winner.name} ganó the game\n')
+# Función que escribe en un archivo, el registro de una muerte entre un asesino y un muerto.
+# printKill: Player Player TextIOWrapper -> None
 
 
 def printKill(killer: Player, killed: Player, output: TextIOWrapper):
     output.write(f'{killer.name} mató a {killed.name}\n')
 
 
+# Función que escoje de una lista de dos jugadores quien sobrevive y quien muere, luego
+# lo escribe en un archivo.
+# fight: List[Player] TextIOWrapper -> Tuple[Player, Player]
 def fight(match: List[Player], output: TextIOWrapper):
-    indexKiller = random.randint(0, 1)
-
-    killer = match.pop(indexKiller)
-    killed = match[0]
-
+    random.shuffle(match)
+    killer = match.pop()
+    killed = match.pop()
     printKill(killer, killed, output)
 
     return killer, killed
 
+# Función que devuelve True si se pueden formar parejas con el estado actual de
+# las ciudades y sus jugadores, False en caso contrario.
+# canPlay: Cities -> bool
 
-def canPlay(cities):
+
+def canPlay(cities: Cities):
     for city in cities:
         if len(cities[city]["players"]) >= 2:
             return True
@@ -42,8 +59,11 @@ def canPlay(cities):
                     return True
     return False
 
+# Función que juega una ronda con el estado actual de las ciudades y sus jugadores.
+# playRound: Cities TextIOWrapper -> None
 
-def playRound(cities, output: TextIOWrapper):
+
+def playRound(cities: Cities, output: TextIOWrapper):
     leftouts = []
 
     for city in cities:
@@ -54,6 +74,13 @@ def playRound(cities, output: TextIOWrapper):
 
     matchLeftouts(cities, leftouts, output)
 
+# Función que evalua si la ciudad en cuestión va a tener un Jugador sin pareja
+# Caso afirmativo, la remueve de la lista y hace pelear al resto de jugadores entre si, luego lo retorna.
+# Caso negativo, hace pelear a los jugadores que estén entre si.
+# En cualquiera de los dos casos, la lista original de jugadores por ciudad se sobrescribe con
+# la lista de solamente los ganadores de cada enfrentamiento.
+# managePlayers: List[Player] TextIOWrapper -> Player | None
+
 
 def managePlayers(players: List[Player], output: TextIOWrapper):
     if len(players) % 2 == 0:
@@ -61,97 +88,68 @@ def managePlayers(players: List[Player], output: TextIOWrapper):
         return None
     leftout = players.pop()
     players.extend(makeFights(players, output))
-    players.append(leftout)
     return leftout
+
+# Función que va formando parejas de a dos de forma aleatoria con los elementos de una lista de jugadores
+# y los hace pelear entre si. Retorna una lista con los jugadores
+# que ganaron sus respectivos enfrentamientos.
+# managePlayers: List[Player] TextIOWrapper -> List[Players]
 
 
 def makeFights(players: List[Player], output: TextIOWrapper):
     matchWinners = []
+    random.shuffle(players)
 
     for _ in range(0, int(len(players) / 2)):
-        index1 = random.randint(0, (len(players) - 1))
-        player1 = players.pop(index1)
-
-        index2 = random.randint(0, (len(players) - 1))
-        player2 = players.pop(index2)
+        player1 = players.pop()
+        player2 = players.pop()
 
         killer, _ = fight([player1, player2], output)
         matchWinners.append(killer)
 
     return matchWinners
 
+# Función auxiliar que toma una lista de jugadores y el nombre de una ciudad.
+# Retorna si existe el jugador de la lista que vive en la ciudad dicha,
+# None si no se encuentra en la misma.
+# findPlayerByCity: List[Player] str -> Player | None
 
-def findPlayerByCity(players: List[Player], city: str):
+
+def findPlayerByCity(players: List[Player], cityName: str):
     for player in players:
-        if player.city == city:
+        if player.city == cityName:
             return player
 
+# Función que recibe una estructura de tipo Cities, una lista de jugadores sin pareja y una variable de archivo.
+# Intenta formar parejas con los jugadores con el siguiente criterio:
+    # Si la ciudad del jugador tiene vecinos, busca el más cercano. Si el mismo tiene al menos un jugador, forma una pareja con los dos.
+    # Caso contrario, sigue con los restantes.
 
-def matchLeftouts(cities, leftouts: List[Player], output: TextIOWrapper):
-    playersMatched = []
-    for player in leftouts:
-        for neighbor, _ in cities[player.city]["neighbor"]:
+    # Si se encuentra una pareja, se los hace pelear. Al ganador se los reintegra a la lista de jugadores original, para matchear con
+    # otra persona en la siguiente ronda.
 
-            if not player in playersMatched:
-                cityNames = map(lambda leftout: leftout.city, leftouts)
-
-                if neighbor in list(cityNames):
-                    player2 = findPlayerByCity(leftouts, neighbor)
-                    if player2:
-                        leftouts.remove(player)
-                        leftouts.remove(player2)
-
-                        playersMatched.append(player)
-                        playersMatched.append(player2)
-
-                        match = [player, player2]
-                        _, killed = fight(match, output)
-
-                        cities[killed.city]["players"].remove(killed)
-                        break
+    # En el caso de que no encuentre una pareja acorde, o la ciudad del jugador no posea vecinos,
+    # reintegra al jugador a la lista de jugadores original.
+# matchLeftouts: Cities List[Player] TextIOWrapper -> None
 
 
-# def matchLeftouts(cities, leftouts: List[Player], output: TextIOWrapper):
-#     matched = []
-#     for player in leftouts:
-#         print(player.city, cities[player.city]["neighbor"])
-#         print(matched)
-#         for neighbor, _ in cities[player.city]["neighbor"]:
-#             cityNames = list(map(lambda leftout: leftout.city, leftouts))
-#             if not(player in matched):
-#                 if neighbor in cityNames:
-#                     player2 = findPlayerByCity(leftouts, neighbor)
+def matchLeftouts(cities: Cities, leftouts: List[Player], output: TextIOWrapper):
+    while leftouts:
+        match = []
 
-#                     matched.append(player)
-#                     matched.append(player2)
+        cityNames = list(map(lambda leftout: leftout.city, leftouts))
+        player1 = leftouts.pop()
 
-#                     match = [player, player2]
-#                     _, killed = fight(match, output)
+        for neighbor, _ in cities[player1.city]["neighbor"]:
+            if neighbor in cityNames:
+                player2 = findPlayerByCity(leftouts, neighbor)
+                leftouts.remove(player2)
 
-#                     print(len(cities[killed.city]["players"]))
+                match = [player1, player2]
+                break
 
-#                     cities[killed.city]["players"].remove(killed)
-#                     break
-#     print("cambiode ronda")
-
-# def matchLeftouts(cities, leftouts: List[Player]):
-#     matches = []
-#     matched = []
-#     for player in leftouts:
-#         cityNames = list(map(lambda leftout: leftout.city, leftouts))
-#         if not(player in matched):
-#             for neighbor, _ in cities[player.city]["neighbor"]:
-#                 if neighbor in cityNames:
-#                     player2 = findPlayerByCity(leftouts, neighbor)
-
-#                     matched.append(player)
-#                     matched.append(player2)
-
-#                     match = [player, player2]
-#                     matches.append(match)
-#                     break
-
-#         if not player in matched or (cities[player.city]["neighbor"]) == 0:
-#             cities[player.city]["players"].append(player)
-
-#     return matches
+        if match:
+            killer, _ = fight(match, output)
+            cities[killer.city]["players"].append(killer)
+        else:
+            cities[player1.city]["players"].append(player1)
