@@ -12,11 +12,11 @@ from player import Player
 #         ],
 #         adultPlayers: [
 #             "pepe",
-#             "culiana"
+#             "juliana"
 #         ],
 #         minorPlayers: [
 #             "pepe",
-#             "culiana"
+#             "juliana"
 #         ]
 #     },
 #     Buenos Aires: {
@@ -51,10 +51,8 @@ def inputMaxDistance():
 # loadPlayersFromFile: Cities -> None
 
 
-def loadPlayersFromFile(cities: Cities):
-    playerFile = sys.argv[-2]
-
-    with open(playerFile, 'r') as jugadores:
+def loadPlayersFromFile(cities: Cities, playersFile: str):
+    with open(playersFile, 'r') as jugadores:
         for person in jugadores.readlines():
             personArray = person.strip('\n').split(",")
             name = personArray[0]
@@ -64,25 +62,30 @@ def loadPlayersFromFile(cities: Cities):
             player = Player(name, cityName, age)
 
             if int(player.age) > 18:
-                cities.setdefault(
-                    cityName, {"neighbor": [], "adultPlayers": [player], "minorPlayers": []})["adultPlayers"].append(player)
+                if cityName in cities:
+                    cities[cityName]["adultPlayers"].append(player)
+                else:
+                    cities.setdefault(
+                        cityName, {"neighbor": [], "adultPlayers": [player], "minorPlayers": []})
             else:
-                cities.setdefault(
-                    cityName, {"neighbor": [], "adultPlayers": [], "minorPlayers": [player]})["minorPlayers"].append(player)
+                if cityName in cities:
+                    cities[cityName]["minorPlayers"].append(player)
+                else:
+                    cities.setdefault(
+                        cityName, {"neighbor": [], "adultPlayers": [], "minorPlayers": [player]})
 
 # Función que toma una estructura de tipo Cities y un número y llena la misma con datos del archivos de distancias ingresado
 # por argumento al correr el programa.
 # loadCitiesFromFile: Cities float -> None
 
 
-def loadCitiesFromFile(cities: Cities, n: float):
-    distanceFile = sys.argv[-1]
-    with open(distanceFile, 'r') as distancias:
+def loadCitiesFromFile(cities: Cities, n: float, distancesFile: str):
+    with open(distancesFile, 'r') as distancias:
         for distancia in distancias.readlines():
             distanciaArray = distancia.strip('\n').split(", ")
 
             if float(distanciaArray[2]) < n:
                 cities[distanciaArray[0]]["neighbor"].append(
-                    [distanciaArray[1], distanciaArray[2]])
+                    (distanciaArray[1], distanciaArray[2]))
                 cities[distanciaArray[1]]["neighbor"].append(
-                    [distanciaArray[0], distanciaArray[2]])
+                    (distanciaArray[0], distanciaArray[2]))

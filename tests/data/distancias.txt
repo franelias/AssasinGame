@@ -1,0 +1,3 @@
+CABA, Rosario, 299.9
+CABA, Santa Fe, 468.5
+Rosario, Santa Fe, 1000.5

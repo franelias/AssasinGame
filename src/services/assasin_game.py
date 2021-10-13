@@ -18,12 +18,13 @@ def start(cities: Cities, output: TextIOWrapper):
     return cities
 
 
-# printWinners: Player TextIOWrapper -> None
 # Función que escribe en un archivo los ganadores.
+# printWinners: Player TextIOWrapper -> None
+
 def printWinners(cities: Player, output: TextIOWrapper):
     for city in cities:
         for winner in cities[city]["players"]:
-            output.write(f'{winner.name} ganó the game\n')
+            output.write(f'{winner.name} ganó\n')
 
 # Función que escribe en un archivo, el registro de una muerte entre un asesino y un muerto.
 # printKill: Player Player TextIOWrapper -> None

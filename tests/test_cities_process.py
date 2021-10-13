@@ -1,14 +1,20 @@
+
+import sys
+sys.path.append("/src")
 from src.config.cities_process import adjustNeighbor
 
 
 def test_AdjustNeighbor():
-    # Testea que las listas de jugadores no se modifiquen
+    # Testea que las listas de jugadores no se modifiquen y que se ordenen los vecinos de Rosario
 
     testDict = {
         'Rosario': {
             'neighbor': [
                 (
                     'CABA', 400
+                ),
+                (
+                    'Santa Fe', 100
                 )
             ],
             'adultPlayers': [

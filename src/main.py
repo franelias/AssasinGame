@@ -1,3 +1,4 @@
+import sys
 import services.assasin_game as AssasinGame
 import config.config as Config
 import config.cities_process as CitiesProcess
@@ -5,11 +6,16 @@ import config.cities_process as CitiesProcess
 
 def main():
     cities = dict()
+    playersFile = sys.argv[-2]
+    distancesFile = sys.argv[-1]
+
     maxDistance = Config.inputMaxDistance()
-    Config.loadPlayersFromFile(cities)
-    Config.loadCitiesFromFile(cities, maxDistance)
+
+    Config.loadPlayersFromFile(cities, playersFile)
+    Config.loadCitiesFromFile(cities, maxDistance, distancesFile)
 
     CitiesProcess.adjustNeighbor(cities)
+
     with open('./output.txt', "w+", encoding="utf-8") as output:
         output.write('Juego de mayores: \n')
         for city in cities:
