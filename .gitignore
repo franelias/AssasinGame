@@ -1,0 +1,8 @@
+__py*
+output.txt
+.pytest_*
+htmlcov
+data_test
+__init__.pyc
+output.txt
+.coverage
